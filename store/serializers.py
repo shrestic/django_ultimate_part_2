@@ -4,18 +4,18 @@ from decimal import Decimal
 from store.models import Product, Collection
 
 
-class CollectionSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    title = serializers.CharField(max_length=255)
+class CollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Collection
+        fields = ["id", "title"]
 
 
-class ProductSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    title = serializers.CharField(max_length=255)
-    unit_price = serializers.DecimalField(max_digits=6, decimal_places=2)
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ["id", "title", "unit_price", "price_with_tax", "collection"]
+
     price_with_tax = serializers.SerializerMethodField(method_name="calculate_tax")
-    # collection = serializers.PrimaryKeyRelatedField(queryset=Collection.objects.all())
-    # collection =CollectionSerializer()
     collection = HyperlinkedRelatedField(
         queryset=Collection.objects.all(),
         view_name="collection-detail",
