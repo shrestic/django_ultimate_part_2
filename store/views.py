@@ -7,16 +7,20 @@ from .models import Product, Collection
 
 
 # Create your views here.
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 def product_list(request):
-    queryset = Product.objects.select_related("collection").all()
-    serializer = ProductSerializer(
-        queryset,
-        many=True,
-        # `HyperlinkedRelatedField` requires the request in the serializer context. Add `context={'request': request}` when instantiating the serializer.
-        context={"request": request},
-    )
-    return Response(serializer.data)
+    if request.method == "GET":
+        queryset = Product.objects.select_related("collection").all()
+        serializer = ProductSerializer(
+            queryset,
+            many=True,
+            # `HyperlinkedRelatedField` requires the request in the serializer context. Add `context={'request': request}` when instantiating the serializer.
+            context={"request": request},
+        )
+        return Response(serializer.data)
+    elif request.method == "POST":
+        serializer = ProductSerializer(data=request.data)
+        return Response("ok")
 
 
 @api_view(["GET"])
