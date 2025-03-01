@@ -20,20 +20,26 @@ def product_list(request):
         return Response(serializer.data)
     elif request.method == "POST":
         serializer = ProductSerializer(data=request.data)
-        return Response("ok")
+        # Using `raise_exception=True` will raise a `ValidationError` exception if the data is invalid.
+        # Using 'raise_exception=True' will replace if-else block
+        serializer.is_valid(raise_exception=True)
+        # Note: `validated_data` contains the validated data but does not cover object-level validation.
+        # If you need to perform object-level validation, you can override the `validate()` method on Serializer class.
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@api_view(["GET"])
+@api_view(["GET", "PUT"])
 def product_detail(request, id):
-    # try:
-    #     product = Product.objects.get(pk=id)
-    #     serialized = ProductSerializer(product)
-    #     return Response(serialized.data)
-    # except Product.DoesNotExist:
-    #     return Response(status=status.HTTP_404_NOT_FOUND)
     product = get_object_or_404(Product, pk=id)
-    serialized = ProductSerializer(product)
-    return Response(serialized.data)
+    if request.method == "GET":
+        serialized = ProductSerializer(product)
+        return Response(serialized.data)
+    elif request.method == "PUT":
+        serialized = ProductSerializer(product, data=request.data, partial=True)
+        serialized.is_valid(raise_exception=True)
+        serialized.save()
+        return Response(serialized.data)
 
 
 @api_view(["GET"])
