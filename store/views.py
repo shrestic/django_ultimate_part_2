@@ -16,6 +16,7 @@ from .serializers import (
     ProductSerializer,
     CollectionSerializer,
     ReviewSerializer,
+    UpdateCartItemSerializer,
 )
 from .models import CartItem, OrderItem, Product, Collection, Review, Cart
 
@@ -86,6 +87,7 @@ class CartViewSet(
 
 
 class CartItemViewSet(ModelViewSet):
+    http_method_names = ["get", "post", "patch", "delete"]
 
     def get_serializer_context(self):
         return {
@@ -95,6 +97,8 @@ class CartItemViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == "POST":
             return AddCartItemSerializer
+        if self.request.method == "PATCH":
+            return UpdateCartItemSerializer
         return CartItemSerializer
 
     def get_queryset(self):
