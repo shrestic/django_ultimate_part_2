@@ -12,6 +12,19 @@ class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        # MultiValueDictKeyError at /store/products/
+        # 'collection_id'
+        # You're encountering a MultiValueDictKeyError because "collection_id" might not always be present in self.request.query_params
+        collection_id = self.request.query_params.get("collection_id")
+        if collection_id is not None:
+            queryset = queryset.filter(collection_id=collection_id)
+        return queryset
+
+        # This code may not work if we dont have collection_id
+        # return Product.objects.filter(collection_id=self.request.content_params["collection_id"])
+
     def get_serializer_context(self):
         return {"request": self.request}
 
