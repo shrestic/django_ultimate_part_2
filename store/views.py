@@ -5,12 +5,12 @@ from rest_framework import status
 from store.serializers import ProductSerializer, CollectionSerializer
 from .models import Product, Collection
 from django.db.models import Count
+from rest_framework.views import APIView
 
 
 # Create your views here.
-@api_view(["GET", "POST"])
-def product_list(request):
-    if request.method == "GET":
+class ProductList(APIView):
+    def get(self, request):
         queryset = Product.objects.select_related("collection").all()
         serializer = ProductSerializer(
             queryset,
@@ -19,7 +19,8 @@ def product_list(request):
             context={"request": request},
         )
         return Response(serializer.data)
-    elif request.method == "POST":
+
+    def post(self, request):
         serializer = ProductSerializer(data=request.data)
         # Using `raise_exception=True` will raise a `ValidationError` exception if the data is invalid.
         # Using 'raise_exception=True' will replace if-else block
@@ -30,18 +31,21 @@ def product_list(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@api_view(["GET", "PUT", "DELETE"])
-def product_detail(request, id):
-    product = get_object_or_404(Product, pk=id)
-    if request.method == "GET":
-        serialized = ProductSerializer(product)
-        return Response(serialized.data)
-    elif request.method == "PUT":
-        serialized = ProductSerializer(product, data=request.data, partial=True)
-        serialized.is_valid(raise_exception=True)
-        serialized.save()
-        return Response(serialized.data)
-    elif request.method == "DELETE":
+class ProductDetail(APIView):
+    def get(self, request, id):
+        product = get_object_or_404(Product, pk=id)
+        serializer = ProductSerializer(product)
+        return Response(serializer.data)
+
+    def put(self, request, id):
+        product = get_object_or_404(Product, pk=id)
+        serializer = ProductSerializer(product, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, id):
+        product = get_object_or_404(Product, pk=id)
         if product.orderitems.count() > 0:
             return Response(
                 {"error": "Product cannot be deleted because it is in an order."},
