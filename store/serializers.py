@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.relations import HyperlinkedRelatedField
 from decimal import Decimal
 from store.models import Product, Collection
 
@@ -8,8 +7,8 @@ class CollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
         fields = ["id", "title", "products_count"]
-        
-    products_count = serializers.IntegerField()
+
+    products_count = serializers.IntegerField(read_only=True)
 
 
 class ProductSerializer(serializers.ModelSerializer):
