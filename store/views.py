@@ -1,10 +1,11 @@
 from django.shortcuts import get_object_or_404
-from store.serializers import ProductSerializer, CollectionSerializer
-from .models import OrderItem, Product, Collection
+from store.serializers import ProductSerializer, CollectionSerializer, ReviewSerializer
+from .models import OrderItem, Product, Collection, Review
 from django.db.models import Count
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
+
 
 # Create your views here.
 class ProductViewSet(ModelViewSet):
@@ -40,3 +41,8 @@ class CollectionViewSet(ModelViewSet):
             )
         collection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ReviewViewSet(ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
