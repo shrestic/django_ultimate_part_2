@@ -2,11 +2,9 @@ from django.shortcuts import get_object_or_404
 from store.serializers import ProductSerializer, CollectionSerializer
 from .models import Product, Collection
 from django.db.models import Count
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 
 # Create your views here.
@@ -24,21 +22,12 @@ class ProductList(ListCreateAPIView):
         return {"request": self.request}
 
 
-class ProductDetail(APIView):
-    def get(self, request, id):
-        product = get_object_or_404(Product, pk=id)
-        serializer = ProductSerializer(product)
-        return Response(serializer.data)
+class ProductDetail(RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
 
-    def put(self, request, id):
-        product = get_object_or_404(Product, pk=id)
-        serializer = ProductSerializer(product, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-    def delete(self, request, id):
-        product = get_object_or_404(Product, pk=id)
+    def delete(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
         if product.orderitems.count() > 0:
             return Response(
                 {"error": "Product cannot be deleted because it is in an order."},
@@ -53,21 +42,12 @@ class CollectionList(ListCreateAPIView):
     serializer_class = CollectionSerializer
 
 
-@api_view(["GET", "PUT", "DELETE"])
-def collection_detail(request, pk):
-    collection = get_object_or_404(
-        Collection.objects.annotate(products_count=Count("products")),
-        pk=pk,
-    )
-    if request.method == "GET":
-        serialized = CollectionSerializer(collection)
-        return Response(serialized.data)
-    elif request.method == "PUT":
-        serialized = CollectionSerializer(collection, data=request.data)
-        serialized.is_valid(raise_exception=True)
-        serialized.save()
-        return Response(serialized.data)
-    elif request.method == "DELETE":
+class CollectionDetail(RetrieveUpdateDestroyAPIView):
+    queryset = Collection.objects.annotate(products_count=Count("products")).all()
+    serializer_class = CollectionSerializer
+
+    def delete(self, request, pk):
+        collection = get_object_or_404(Collection, pk=pk)
         if collection.products.count() > 0:
             return Response(
                 {"error": "Collection cannot be deleted because it contains products."},
