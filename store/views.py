@@ -1,11 +1,10 @@
 from django.shortcuts import get_object_or_404
 from store.serializers import ProductSerializer, CollectionSerializer
-from .models import Product, Collection
+from .models import OrderItem, Product, Collection
 from django.db.models import Count
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
-
 
 # Create your views here.
 class ProductViewSet(ModelViewSet):
@@ -15,15 +14,17 @@ class ProductViewSet(ModelViewSet):
     def get_serializer_context(self):
         return {"request": self.request}
 
-    def delete(self, request, pk):
-        product = get_object_or_404(Product, pk=pk)
-        if product.orderitems.count() > 0:
+    def destroy(self, request, *args, **kwargs):
+        """
+        Since self.get_object() is already used in the destroy method, we should avoid retrieving the product again.
+        Instead, we need to find an efficient way to check if the product is part of an order before deletion.
+        """
+        if OrderItem.objects.filter(product_id=kwargs["pk"]).count() > 0:
             return Response(
                 {"error": "Product cannot be deleted because it is in an order."},
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
-        product.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return super().destroy(request, *args, **kwargs)
 
 
 class CollectionViewSet(ModelViewSet):

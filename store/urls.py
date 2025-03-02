@@ -1,12 +1,15 @@
 from django.urls import path
+from rest_framework.routers import SimpleRouter, DefaultRouter
 from . import views
 
-urlpatterns = [
-    path("products/", views.ProductList.as_view()),
-    # GenericView requires pk not id
-    path("products/<int:pk>/", views.ProductDetail.as_view()),
-    path("collections/", views.CollectionList.as_view()),
-    # You may have failed to include the related model in your API, or incorrectly configured the `lookup_field` attribute on this field.
-    # Convert id to pk in the path
-    path("collections/<int:pk>/", views.CollectionDetail.as_view(), name="collection-detail"),
-]
+router = DefaultRouter()
+router.register("products", views.ProductViewSet)
+router.register("collections", views.CollectionViewSet)
+urlpatterns = router.urls
+
+# [
+#     <URLPattern '^products/$' [name='product-list']>,
+#     <URLPattern '^products/(?P<pk>[^/.]+)/$' [name='product-detail']>,
+#     <URLPattern '^collections/$' [name='collection-list']>,
+#     <URLPattern '^collections/(?P<pk>[^/.]+)/$' [name='collection-detail']>
+# ]
