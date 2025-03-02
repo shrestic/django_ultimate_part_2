@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from decimal import Decimal
-from store.models import Cart, Product, Collection, Review
+from store.models import Cart, CartItem, Product, Collection, Review
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -48,9 +48,32 @@ class ReviewSerializer(serializers.ModelSerializer):
         return Review.objects.create(product_id=product_id, **validated_data)
 
 
-class CartSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(read_only=True)
+class SimpleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ["id", "title", "unit_price"]
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    product = SimpleProductSerializer()
+    total_price = serializers.SerializerMethodField()
+
+    def get_total_price(self, cart_item: CartItem):
+        return cart_item.product.unit_price * cart_item.quantity
 
     class Meta:
+        model = CartItem
+        fields = ["id", "product", "quantity", "total_price"]
+
+
+class CartSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    items = CartItemSerializer(many=True)
+    total_price = serializers.SerializerMethodField()
+    
+    def get_total_price(self, cart_item: CartItem):
+        return sum([item.product.unit_price * item.quantity for item in cart_item.items.all()])
+    
+    class Meta:
         model = Cart
-        fields = ["id"]
+        fields = ["id", "items", "total_price"]
