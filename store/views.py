@@ -17,12 +17,13 @@ from .serializers import (
     CartItemSerializer,
     CartSerializer,
     CustomerSerializer,
+    OrderSerializer,
     ProductSerializer,
     CollectionSerializer,
     ReviewSerializer,
     UpdateCartItemSerializer,
 )
-from .models import CartItem, Customer, OrderItem, Product, Collection, Review, Cart
+from .models import CartItem, Customer, Order, OrderItem, Product, Collection, Review, Cart
 
 
 # Create your views here.
@@ -131,3 +132,8 @@ class CustomerViewSet(ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
+
+
+class OrderViewSet(ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
