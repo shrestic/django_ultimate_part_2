@@ -9,7 +9,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, DjangoModelPermissionsOrAnonReadOnly
-from store.permissions import FullDjangoModelPermissions, IsAdminOrReadOnly
+from store.permissions import FullDjangoModelPermissions, IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .filters import ProductFilter
 from .pagination import DefaultPagination
 from .serializers import (
@@ -115,6 +115,10 @@ class CustomerViewSet(ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     permission_classes = [IsAdminUser]
+
+    @action(detail=True, permission_classes=[ViewCustomerHistoryPermission])
+    def history(self, request, pk):
+        return Response("Ok")
 
     @action(detail=False, methods=["GET", "PUT"], permission_classes=[IsAuthenticated])
     def me(self, request):
